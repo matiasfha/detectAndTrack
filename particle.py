@@ -1,7 +1,6 @@
 import numpy as np
 import math
 from polya import bhattacharyya
-from kinect import Kinect
 import cv2
 
 
@@ -10,7 +9,8 @@ class Image:
         self.capture = cv2.VideoCapture(0)
         ret,self.image=self.capture.read()
         self.size = (self.image.shape[0],self.image.shape[1])
-        self.nbins=4
+        self.nbins=8
+        self.edges=[np.linspace(0,180,self.nbins+1),np.linspace(0,256,self.nbins+1),np.linspace(0,256,2+1)]
         self.found=[]
         self.cascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
 
@@ -18,16 +18,18 @@ class Image:
         ret,self.image = self.capture.read()
         if ret:
             self.found = self.cascade.detectMultiScale(self.image, scaleFactor=1.3, minNeighbors=4, minSize=(30, 30), flags = cv2.CASCADE_SCALE_IMAGE)
-    
+
 
     def getColorHistogram(self,state):
         hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
         x,y,h,w=state[0:4]
         if((x<0 or x>self.size[1]) or (y<0 or y>self.size[0])):
-            return(np.zeros(self.nbins))
+            return(np.zeros(self.nbins+1,self.nbins+1,3))
         else:
             hsv_roi = hsv[y:y+w, x:x+h]
-            return(cv2.calcHist( [hsv_roi], [0,1], None, [self.nbins,self.nbins], [0, 180, 0, 256] ))
+            hist,edges=np.histogramdd(hsv_roi.reshape(-1,3),bins=self.edges)
+            return hist
+            #return(cv2.calcHist( [hsv_roi], [0,1], None, [self.nbins,self.nbins], [0, 180, 0, 256] ))
 
     def show(self):
         if len(self.found)>0:
@@ -38,8 +40,10 @@ class Image:
         cv2.destroyAllWindows()
 
     def show_hist(self,hist):
+        hist = hist.reshape(-1)
+        #hist=hist/np.float(hist.sum())
         bin_count = hist.shape[0]
-        bin_w = 24
+        bin_w = 8
         img = np.zeros((256, bin_count*bin_w, 3), np.uint8)
         for i in xrange(bin_count):
             h = int(hist[i])
@@ -108,25 +112,27 @@ class ParticleFilter:
 
 
 img = Image()
-
+det=0
 while(True):
     img.get()
     img.show()
     if(len(img.found)>0):
-        hist=img.getColorHistogram(img.found[0])
-        cv2.normalize(hist, hist, 0, 255, cv2.NORM_MINMAX)
-        hist = hist.reshape(-1)
-        img.show_hist(hist)
-        img.draw_detections(3)
+        hist_ref=img.getColorHistogram(img.found[0]).ravel()
+        img.show_hist(hist_ref)
+        hist_ref=hist_ref/float(hist_ref.sum())
+        img.draw_detections(thickness=3)
+        det=det+1
     if 0xFF & cv2.waitKey(5) == 27:
         break
-'''
+    
 while(True):
     img.get()
     img.show()
     if len(img.found)>0:
-        hist=img.getColorHistogram(img.found[0])
+        hist=img.getColorHistogram(img.found[0]).ravel()
         img.show_hist(hist)
+        hist=hist/float(hist.sum())
+        print 'Bhattacharyya={0}'.format(bhattacharyya(hist_ref,hist))
+
     if 0xFF & cv2.waitKey(5) == 27:
         break
-'''
