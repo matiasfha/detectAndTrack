@@ -8,26 +8,26 @@ import cv2
 class Image:
     def __init__(self):
         self.capture = cv2.VideoCapture(0)
-        self.image=self.capture.read()
-        self.size = (self.image.shape[1],self.image.shape[0])
-        self.nbins=16
-        self.hog = cv2.HOGDescriptor()
-        self.hog.setSVMDetector( cv2.HOGDescriptor_getDefaultPeopleDetector() )
+        ret,self.image=self.capture.read()
+        self.size = (self.image.shape[0],self.image.shape[1])
+        self.nbins=4
         self.found=[]
+        self.cascade = cv2.CascadeClassifier("haarcascade_frontalface_alt.xml")
 
     def get(self):
-        self.image = self.kn.color_to_cv()
-        self.found, w = self.hog.detectMultiScale(self.image, winStride=(8,8), padding=(32,32), scale=1.05)
+        ret,self.image = self.capture.read()
+        if ret:
+            self.found = self.cascade.detectMultiScale(self.image, scaleFactor=1.3, minNeighbors=4, minSize=(30, 30), flags = cv2.CASCADE_SCALE_IMAGE)
     
 
     def getColorHistogram(self,state):
         hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
         x,y,h,w=state[0:4]
-        if((x<0 or x>self.size[0]) or (y<0 or y>self.size[1])):
+        if((x<0 or x>self.size[1]) or (y<0 or y>self.size[0])):
             return(np.zeros(self.nbins))
         else:
             hsv_roi = hsv[y:y+w, x:x+h]
-            return(cv2.calcHist( [hsv_roi], [0], None, [self.nbins], [0, 180] ))
+            return(cv2.calcHist( [hsv_roi], [0,1], None, [self.nbins,self.nbins], [0, 180, 0, 256] ))
 
     def show(self):
         if len(self.found)>0:
@@ -35,7 +35,6 @@ class Image:
         cv2.imshow('Tracker',self.image)
     
     def __del__(self):
-        self.kn.unload()
         cv2.destroyAllWindows()
 
     def show_hist(self,hist):
@@ -110,9 +109,17 @@ class ParticleFilter:
 
 img = Image()
 
-'''while(len(img.found)==0):
+while(True):
     img.get()
     img.show()
+    if(len(img.found)>0):
+        hist=img.getColorHistogram(img.found[0])
+        cv2.normalize(hist, hist, 0, 255, cv2.NORM_MINMAX)
+        hist = hist.reshape(-1)
+        img.show_hist(hist)
+        img.draw_detections(3)
+    if 0xFF & cv2.waitKey(5) == 27:
+        break
 '''
 while(True):
     img.get()
@@ -122,3 +129,4 @@ while(True):
         img.show_hist(hist)
     if 0xFF & cv2.waitKey(5) == 27:
         break
+'''
