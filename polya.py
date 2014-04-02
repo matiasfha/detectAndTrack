@@ -1,8 +1,13 @@
 from numpy import *
 from scipy.integrate import fixed_quad
-from scipy.special import gammaln, betaln, digamma, polygamma
+from scipy.special import gammaln, betaln, digamma, polygamma, psi
 from scipy.optimize import fmin
 import sys
+
+def meanprecision(alpha):
+    s = alpha.sum().astype(float)
+    m = alpha / s
+    return (m,s)
 
 def lnchoose(n, m):
     nf = gammaln(n + 1)
@@ -62,7 +67,7 @@ def fit_betabinom_minka(counts, maxiter=1000, tol=1e-6, initial_guess=None):
 
     # now leaving Abstraction Barrier
 
-    return array(alpha[:,0]).T, iter < maxiter
+    return array(alpha[:,0]).T, iter
 
 def di_pochhammer(x, n):
     'digamma(x+n) - digamma(x), but 0 for n = 0'
@@ -188,8 +193,7 @@ def fit_betabinom_minka_alternating(counts, maxiter=1000, tol=1e-6):
         alpha = polya_fit_s(counts, alpha, tol)
         change = abs(old_alpha - alpha).max()
         iter += 1
-    return alpha, iter < maxiter
-
+    return alpha, iter 
 def polya_sample(m,alpha,mdocs=1e3):
     for i in range(m):
         p = random.dirichlet(alpha)
@@ -200,10 +204,43 @@ def polya_sample(m,alpha,mdocs=1e3):
             x=vstack([x,random.multinomial(n,p,1)])
     return x
 
-def test():
-    alpha=array([10,40,20])
-    X=polya_sample(100,alpha)
+def fit_fixedpoint(counts,maxiter=1000,tol=1e-6):
+   # Maximization
+    counts = matrix(counts).astype(float)
+    ntrain,D=counts.shape
+    # remove observations with no trials
+    counts = counts[sum(counts.A, axis=1) > 0, :]
+    alpha = array(polya_moment_match(counts)).flatten()
+    counts = counts.A
+    change = 2 * tol
+    iter = 0
+    c=zeros((ntrain,D))
+    d=zeros(ntrain)
+    while (change > tol) and (iter < maxiter):
+        old_alpha = alpha
+        for i in range(ntrain):
+            c[i,:]=(psi(counts[i,:]+alpha)-psi(alpha))
+            d[i]=(psi(counts[i,:].sum()+alpha.sum())-psi(alpha.sum()))
+        alpha=multiply(alpha,c.sum(axis=0)/d.sum())
+        change = abs(old_alpha - alpha).max()
+        iter += 1
+    return alpha, iter 
+
+def bhattacharyya(h1,h2):
+    return sqrt(1-sqrt(multiply(h1,h2)).sum())
+
+def test(dim=5,nsamples=100):
+    alpha=random.rand(dim)
+    m0=alpha/alpha.sum().astype(float)
+    X=polya_sample(nsamples,alpha)
     print X
-    alpha_hat,it=fit_betabinom_minka_alternating(X)
-    print alpha,alpha_hat.ravel()
+    print alpha.sum()
+    alpha_hat1,it1=fit_betabinom_minka_alternating(X)
+    m1,s1=meanprecision(alpha_hat1)
+    alpha_hat2,it2=fit_fixedpoint(X)
+    m2,s2=meanprecision(alpha_hat2)
+    print 'Mean-Precision'
+    print 'MAX ITER:  {0}, Bhattacharyya={1}, s={2}'.format(it1,bhattacharyya(m1,m0),s1)
+    print 'Fixed-Point'
+    print 'MAX ITER:  {0}, Bhattacharyya={1}, s={2}'.format(it2,bhattacharyya(m2,m0),s2)
     
