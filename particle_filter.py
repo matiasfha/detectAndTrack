@@ -1,3 +1,6 @@
+# encoding: utf-8
+import numpy as np
+
 class ParticleFilter:
 
     def __init__(self, x0, P0, hist, sigma2, num):
