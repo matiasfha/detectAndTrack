@@ -29,7 +29,7 @@ def log_like_polya(alpha,counts):
     loglike+=gammaln(alphasum) - gammaln(alphasum + csum)
     loglike+=(gammaln(alpha+counts)-gammaln(alpha)).sum()
     return loglike
-    
+
 
 def dirichlet_moment_match(proportions, weights):
     a = array(average(proportions, axis=0, weights=weights.flat))
@@ -39,7 +39,7 @@ def dirichlet_moment_match(proportions, weights):
     m2ok = m2[nz]
     s = median((aok - m2ok) / (m2ok - aok * aok))
     return matrix(a * s)
-    
+
 def polya_moment_match(counts):
     return dirichlet_moment_match(array(counts) / sum(counts, axis=1).repeat(counts.shape[1], axis=1), sum(counts, axis=1))
 
@@ -51,7 +51,7 @@ def fit_betabinom_minka(counts, maxiter=1000, tol=1e-6, initial_guess=None):
     counts should be NxK with N samples over K classes.'''
 
     counts = matrix(counts).astype(float)
-    
+
     # remove observations with no trials
     counts = counts[sum(counts.A, axis=1) > 0, :]
     if initial_guess == None:
@@ -94,8 +94,8 @@ def tri_pochhammer(x, n):
     nz = (n > 0)
     y[nz] = trigamma(x + n[nz]) - trigamma(x)
     return y
-    
-    
+
+
 
 def polya_fit_m(counts, alpha, tol):
     '''see polya_fit_m.m in fastfit toolbox,
@@ -152,7 +152,7 @@ def polya_fit_s(counts, alpha, tol):
 
     eps = finfo(float64).eps
     # minka has 10 iters for s, compared to 20 for m.  perhaps because s takes longer.
-    for iter in range(10): 
+    for iter in range(10):
         g, h = s_derivatives(alpha)
         if g > eps:
             c = g + s * h # eq 86
@@ -202,7 +202,7 @@ def fit_betabinom_minka_alternating(counts, maxiter=1000, tol=1e-6):
         alpha = polya_fit_s(counts, alpha, tol)
         change = abs(old_alpha - alpha).max()
         iter += 1
-    return alpha, iter 
+    return alpha, iter
 def polya_sample(m,alpha,mdocs=1e3):
     for i in range(m):
         p = random.dirichlet(alpha)
@@ -234,7 +234,7 @@ def fit_fixedpoint(counts,maxiter=1000,tol=1e-6):
         alpha=multiply(alpha,c.sum(axis=0)/d.sum())
         change = abs(old_alpha - alpha).max()
         iter += 1
-    return alpha, iter 
+    return alpha, iter
 
 def bhattacharyya(h1,h2):
     return sqrt(1-sqrt(multiply(h1,h2)).sum())
@@ -254,4 +254,4 @@ def test(dim=5,nsamples=100):
     print 'Fixed-Point'
     print 'MAX ITER:  {0}, Bhattacharyya={1}, s={2}'.format(it2,bhattacharyya(m2,m0),s2)
     return X
-    
+
