@@ -22,6 +22,15 @@ def logP(alpha, counts):
         return gammaln(alphasum) - gammaln(alphasum + sum(c)) + sum([gammaln(alpha[k] + c[k]) - gammaln(alpha[k]) for k in range(len(alpha))])
     return sum([logPsingle(counts[i, :]) for i in range(counts.shape[0])])
 
+def log_like_polya(alpha,counts):
+    csum=counts.sum()
+    alphasum = sum(alpha)
+    loglike=gammaln(csum+1)-gammaln(counts+1).sum()
+    loglike+=gammaln(alphasum) - gammaln(alphasum + csum)
+    loglike+=(gammaln(alpha+counts)-gammaln(alpha)).sum()
+    return loglike
+    
+
 def dirichlet_moment_match(proportions, weights):
     a = array(average(proportions, axis=0, weights=weights.flat))
     m2 = array(average(multiply(proportions, proportions), axis=0, weights=weights.flat))
@@ -208,6 +217,7 @@ def fit_fixedpoint(counts,maxiter=1000,tol=1e-6):
    # Maximization
     counts = matrix(counts).astype(float)
     ntrain,D=counts.shape
+    print counts.shape
     # remove observations with no trials
     counts = counts[sum(counts.A, axis=1) > 0, :]
     alpha = array(polya_moment_match(counts)).flatten()
@@ -243,4 +253,5 @@ def test(dim=5,nsamples=100):
     print 'MAX ITER:  {0}, Bhattacharyya={1}, s={2}'.format(it1,bhattacharyya(m1,m0),s1)
     print 'Fixed-Point'
     print 'MAX ITER:  {0}, Bhattacharyya={1}, s={2}'.format(it2,bhattacharyya(m2,m0),s2)
+    return X
     

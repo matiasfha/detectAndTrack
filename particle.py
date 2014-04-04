@@ -1,6 +1,6 @@
 import numpy as np
 import math
-from polya import bhattacharyya
+from polya import bhattacharyya,log_like_polya,logP,fit_betabinom_minka,fit_betabinom_minka_alternating,fit_fixedpoint
 import cv2
 
 
@@ -27,9 +27,9 @@ class Image:
             return(np.zeros(self.nbins+1,self.nbins+1,3))
         else:
             hsv_roi = hsv[y:y+w, x:x+h]
-            hist,edges=np.histogramdd(hsv_roi.reshape(-1,3),bins=self.edges)
-            return hist
-            #return(cv2.calcHist( [hsv_roi], [0,1], None, [self.nbins,self.nbins], [0, 180, 0, 256] ))
+            #hist,edges=np.histogramdd(hsv_roi.reshape(-1,3),bins=self.edges)
+            #return hist
+            return(cv2.calcHist( [hsv_roi], [0,1], None, [self.nbins,self.nbins], [0, 180, 0, 256] ))
 
     def show(self):
         if len(self.found)>0:
@@ -39,7 +39,7 @@ class Image:
     def __del__(self):
         cv2.destroyAllWindows()
 
-    def show_hist(self,hist):
+    def show_hist(self,hist,title='hist'):
         hist = hist.reshape(-1)
         #hist=hist/np.float(hist.sum())
         bin_count = hist.shape[0]
@@ -49,7 +49,7 @@ class Image:
             h = int(hist[i])
             cv2.rectangle(img, (i*bin_w+2, 255), ((i+1)*bin_w-2, 255-h), (int(180.0*i/bin_count), 255, 255), -1)
         img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
-        cv2.imshow('hist', img)
+        cv2.imshow(title, img)
 
     def draw_detections(self,thickness = 1):
         for x, y, w, h in self.found:
@@ -112,27 +112,31 @@ class ParticleFilter:
 
 
 img = Image()
-det=0
+detections=[]
 while(True):
     img.get()
-    img.show()
+    #img.show()
     if(len(img.found)>0):
         hist_ref=img.getColorHistogram(img.found[0]).ravel()
+        detections.append(hist_ref)
         img.show_hist(hist_ref)
         hist_ref=hist_ref/float(hist_ref.sum())
-        img.draw_detections(thickness=3)
-        det=det+1
+        #img.draw_detections(thickness=3)      
     if 0xFF & cv2.waitKey(5) == 27:
         break
-    
+print np.asmatrix(detections).shape
+alpha_hat,it=fit_betabinom_minka_alternating(detections)
+
 while(True):
     img.get()
     img.show()
     if len(img.found)>0:
         hist=img.getColorHistogram(img.found[0]).ravel()
         img.show_hist(hist)
-        hist=hist/float(hist.sum())
-        print 'Bhattacharyya={0}'.format(bhattacharyya(hist_ref,hist))
-
+        hist_norm=hist/float(hist.sum())
+        D=bhattacharyya(hist_ref,hist_norm)
+        G=np.exp(-20.*D**2)
+        P=np.exp(log_like_polya(alpha_hat,np.array([hist])))
+        print 'Bhattacharyya={0},Gaussian={1},Polya={2}'.format(D,G,P)
     if 0xFF & cv2.waitKey(5) == 27:
         break
