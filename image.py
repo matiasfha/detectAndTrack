@@ -13,25 +13,36 @@ class Image:
     def get(self):
         ret,self.image = self.device.read()
 
+    def size():
+        return self.size
+
     def getColorHistogram(self,roi=None):
         hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
         if roi is not None:
-            x,y,h,w=roi
+            if len(roi) > 4:
+                roi = roi[:4]
+            x = int(roi[0])
+            y = int(roi[1])
+            w = int(roi[2])
+            h = int(roi[3])
         else:
+            #Histogram to all frame
             x,y,h,w= (0,0,self.size[0],self.size[1])
         if((x<0 or x>self.size[1]) or (y<0 or y>self.size[0])):
-            return(np.zeros(self.nbins+1,self.nbins+1,3))
+            # return(np.zeros(self.nbins+1,self.nbins+1,3))
+            return np.zeros((64,)).reshape((64,))
         else:
             hsv_roi = hsv[y:y+w, x:x+h]
-            hist,edges=np.histogramdd(hsv_roi.reshape(-1,3),bins=self.edges)
-            return hist
+            # hist,edges=np.histogramdd(hsv_roi.reshape(-1,3),bins=self.edges)
+            # return hist
+            return(cv2.calcHist( [hsv_roi], [0,1], None, [self.nbins,self.nbins], [0, 180, 0, 256] ))
+
 
     def show(self,window_name = 'Image'):
         cv2.imshow(window_name,self.image)
 
     def show_hist(self,hist,window_name='hist'):
         hist = hist.reshape(-1)
-        #hist=hist/np.float(hist.sum())
         bin_count = hist.shape[0]
         bin_w = 8
         img = np.zeros((256, bin_count*bin_w, 3), np.uint8)

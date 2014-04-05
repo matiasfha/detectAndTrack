@@ -1,6 +1,6 @@
 # encoding: utf-8
 import numpy as np
-
+from polya import bhattacharyya,log_like_polya,logP,fit_betabinom_minka,fit_betabinom_minka_alternating,fit_fixedpoint
 class ParticleFilter:
 
     def __init__(self, x0, P0, hist, sigma2, num):
@@ -39,7 +39,7 @@ class ParticleFilter:
     def _calculate_weights(self,img):
         for i in range(self.num):
             observed_hists=img.getColorHistogram(self.states[i])
-            D=bhattacharyya(observed_hists,self.hist_ref)
+            D=bhattacharyya(observed_hists.reshape((64,)),self.hist_ref)
             self.weights[i]=self.weights[i]*np.exp(-D/self.sigma2)
         self.weights=self.weights[i]/np.float(self.weights.sum())
 
