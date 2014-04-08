@@ -84,10 +84,10 @@ if __name__=='__main__':
 
             #FOr not face
 
-            x = random.sample([random.uniform(0,img.size[0]) for i in range(100)],1)[0]
-            y = random.sample([random.uniform(0,img.size[1]) for i in range(100)],1)[0]
-            w = random.sample([random.uniform(0,200) for i in range(100)],1)[0]
-            h = random.sample([random.uniform(0,200) for i in range(100)],1)[0]
+            x = 0#random.sample([random.uniform(0,img.size[0]) for i in range(100)],1)[0]
+            y = 0#random.sample([random.uniform(0,img.size[1]) for i in range(100)],1)[0]
+            w = found[0][2]#random.sample([random.uniform(0,200) for i in range(100)],1)[0]
+            h = found[0][3]#random.sample([random.uniform(0,200) for i in range(100)],1)[0]
             rect = (x,y,w,h)
 
             hist = img.getColorHistogram(rect).ravel()

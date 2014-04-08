@@ -2,7 +2,8 @@
 import numpy as np
 from polya import bhattacharyya
 class ParticleFilter:
-
+   # sigma 1/20
+   #
     def __init__(self, x0, P0, hist, sigma2, num):
         """ x_{k+1} = A*x_{k}+B*u_k + v_k
         y_k = KDE(x_k) + e_k
@@ -40,17 +41,20 @@ class ParticleFilter:
         for i in range(self.num):
             try:
                 observed_hists=img.getColorHistogram(self.states[i])
-                D=bhattacharyya(observed_hists,self.hist_ref)
+                D=bhattacharyya(observed_hists,self.hist_ref) # Cambia por Polya
                 self.weights[i]=self.weights[i]*np.exp(-D/self.sigma2)
-                self.weights=self.weights[i]/np.float(self.weights.sum())
             except:
                 pass
+        self.weights=self.weights/np.float(self.weights.sum()) #Normalizacion
+
+
 
 
     def _resample(self):
         indices=np.random.choice(np.arange(0,self.num),size=self.num,replace=True,p=self.weights)
         self.weights=np.ones(num)/np.float(num)
         self.states=self.states[indices]
+
 
     def update(self,img):
         self._calculate_weights(img)
