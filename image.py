@@ -54,6 +54,10 @@ class Image:
 
     def draw_roi(self,roi):
         for x,y,w,h in roi:
+            x = int(x)
+            y = int(y)
+            w = int(w)
+            h = int(h)
             pad_w, pad_h = int(0.15*w), int(0.05*h)
             cv2.rectangle(self.image, (x+pad_w, y+pad_h), (x+w-pad_w, y+h-pad_h), (0, 255, 0), 2)
 

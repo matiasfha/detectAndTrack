@@ -14,40 +14,69 @@ def go_particle():
     found = []
     initialState = None
     pf = None
-    weights = []
+    histograms = []
+    detections = []
+    hist_ref = None
+    #Recoleccion
     while(True):
         img.get()
 
-        if len(found) == 0:
+        #Face de recoleccion de información/ Aprendizaje
+        if len(histograms) < 10:
+            print len(histograms)
+            #Detect faces
             found = detect.faces(img.image)
-            hist = img.getColorHistogram(found[0])
-        else:
-            #Use the found to create initialState if initialState is None
+            if len(found) > 0:
+                hist_ref = img.getColorHistogram(found[0]).ravel()
+                histograms.append(hist_ref)
+                detections.append(found)
+                img.show_hist(hist_ref)
+                hist_ref=hist_ref/float(hist_ref.sum())
+        else: #Aprendizaje finalizado
+            #Iniciar filtro, utilizar el ultimo ROI/found como initialState
             if initialState is None:
                 x,y,w,h = found[0]
                 hist = img.getColorHistogram(found[0]).ravel()
-                dx = [random.uniform(0,img.size[0]) for i in range(100)]
-                dy = [random.uniform(0,img.size[1]) for i in range(100)]
-                dw = [random.uniform(0,5) for i in range(100)]
-                dh = [random.uniform(0,5) for i in range(100)]
-                initialState = [list(s) for s in zip([x],[y],[w],[h],random.sample(dx,1),random.sample(dy,1),random.sample(dw,1),random.sample(dh,1))][0]
-                secondState = [list(s) for s in zip([x],[y],[w],[h],random.sample(dx,1),random.sample(dy,1),random.sample(dw,1),random.sample(dh,1))][0]
-                x = np.array([initialState,secondState]).T
-                cov = np.cov(x)
-                pf = ParticleFilter(initialState,cov,hist,0.9 ** 2,10)
+                dx = [random.uniform(0,img.size[0]) for i in range(8)]
+                dy = [random.uniform(0,img.size[1]) for i in range(8)]
+                dw = [random.uniform(0,w) for i in range(8)]
+                dh = [random.uniform(0,h) for i in range(8)]
+                print np.mean(np.asarray(histograms))
+                initialState = [list(s) for s in zip([x],[y],[w],[h],dx,dy,dw,dh)][0]
+                ceroState = np.random.uniform(0,img.size[1],8)
+                cov = np.cov(np.array([initialState,ceroState]).T)
+                pf  = ParticleFilter(initialState,cov,hist_ref,1./-20,10)
+            else: #ya se ha inicializado el filtro ahora se busca actualizar y predecir
                 pf.predict()
+                for rect in pf.states:
+                    rect = rect[:4]
+                    img.draw_roi([rect])
+                    print rect
+                print '#################'
                 pf.update(img)
-            else:
-                pf.predict()
-                pf.update(img)
+        img.show()
 
-                for rect in pf.states.tolist():
-                    img.draw_roi( [rect[:4]] )
-            img.show()
-            if 0xFF & cv2.waitKey(5) == 27:
-                break
+        if 0xFF & cv2.waitKey(5) == 27:
+            break
 
-if __name__=='__main__':
+
+
+    #             pf = ParticleFilter(initialState,cov,hist,0.9 ** 2,100) #num depende de la maquina
+    #             # pf.predict()
+    #             # pf.update(img)
+    #             #pf.states -> dibujar
+    #         else:
+    #             pf.predict()
+
+    #             for rect in pf.states.tolist():
+    #                 img.draw_roi( [rect[:4]] )
+
+    #             pf.update(img)
+    #         img.show()
+    #         if 0xFF & cv2.waitKey(5) == 27:
+    #             break
+    #
+def compare_distributions():
     img     = Image()
     detect  = Detection()
     histograms = []
@@ -101,5 +130,8 @@ if __name__=='__main__':
         img.show()
         if 0xFF & cv2.waitKey(5) == 27:
             break
+
+if __name__=='__main__':
+    go_particle()
 
 

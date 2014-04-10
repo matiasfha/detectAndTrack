@@ -35,7 +35,7 @@ class Image:
         if len(self.found)>0:
             self.draw_detections(1)
         cv2.imshow('Tracker',self.image)
-    
+
     def __del__(self):
         cv2.destroyAllWindows()
 
@@ -61,7 +61,7 @@ class ParticleFilter:
 
     def __init__(self, x0, P0, hist, sigma2, num):
         """ x_{k+1} = A*x_{k}+B*u_k + v_k
-        y_k = KDE(x_k) + e_k 
+        y_k = KDE(x_k) + e_k
         v_k ~ N(0,Q)
         e_k ~ exp(-D/sigma2)
         x0 = x_0, P0 = P_0
@@ -78,7 +78,7 @@ class ParticleFilter:
                             [0,0,0,0,0,0,0,1]])
         self.dim=8
         self.num=num
-        self.hist_ref=hist_ref        
+        self.hist_ref=hist_ref
         self.Q = np.eye(self.dim)      # Measurement noise covariance
         self.sigma2 = sigma2      # Process noise covariance
         self.x0=x0
@@ -87,7 +87,7 @@ class ParticleFilter:
         self.weights=np.ones(num)/np.float(num)
         self.threshold=.5
 
-        
+
     def predict(self):
         for i in range(self.num):
             self.states[i]=np.dot(self.A,self.states[i])+np.random.multivariate_normal(np.zeros(self.dim),self.Q)
@@ -121,7 +121,7 @@ while(True):
         detections.append(hist_ref)
         img.show_hist(hist_ref)
         hist_ref=hist_ref/float(hist_ref.sum())
-        #img.draw_detections(thickness=3)      
+        #img.draw_detections(thickness=3)
     if 0xFF & cv2.waitKey(5) == 27:
         break
 print np.asmatrix(detections).shape

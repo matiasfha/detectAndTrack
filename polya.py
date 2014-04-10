@@ -38,8 +38,8 @@ def dirichlet_moment_match(proportions, weights):
     aok = a[nz]
     m2ok = m2[nz]
     s = median((aok - m2ok) / (m2ok - aok * aok))
-    out=matrix(a * s)+.5
-    return out
+
+    return matrix(a * s)
 
 def polya_moment_match(counts):
     return dirichlet_moment_match(array(counts) / sum(counts, axis=1).repeat(counts.shape[1], axis=1), sum(counts, axis=1))
