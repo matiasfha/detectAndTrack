@@ -63,5 +63,6 @@ class Image:
 
     def __del__(self):
         cv2.destroyAllWindows()
+        self.device.release
 
 

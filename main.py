@@ -153,39 +153,36 @@ def compare_distributions():
     fpr, tpr, thresholds = roc_curve(v, d)
     roc_auc = auc(fpr, tpr)
     print("Area under the ROC curve : %f" % roc_auc)
-    # Plot ROC curve
-    pl.clf()
-    pl.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
-    pl.plot([0, 1], [0, 1], 'k--')
-    pl.xlim([0.0, 1.0])
-    pl.ylim([0.0, 1.0])
-    pl.xlabel('False Positive Rate')
-    pl.ylabel('True Positive Rate')
-    pl.title('Receiver operating characteristic example')
-    pl.legend(loc="lower right")
-    pl.show()
-
+    
     polya_data_f = np.asarray(polya_data_f)        
     polya_data_f = polya_data_f[~np.isnan(polya_data_f)] #Remove Nan elements
     polya_data_n = np.asarray(polya_data_n)
     polya_data_n = polya_data_n[~np.isnan(polya_data_n)] #Remove Nan elements
     d            =  np.concatenate((polya_data_f,polya_data_n))
     v = np.concatenate(( np.ones(len(polya_data_f)), np.zeros(len(polya_data_n))))
-    fpr, tpr, thresholds = roc_curve(v, d)
-    roc_auc = auc(fpr, tpr)
-    print("Area under the ROC curve : %f" % roc_auc)
-    # Plot ROC curve
-    pl.clf()
+    fpr2, tpr2, thresholds = roc_curve(v, d)
+    roc_auc2 = auc(fpr, tpr)
+    print("Area under the ROC curve : %f" % roc_auc2)
+    
+    pl.subplot(212)
     pl.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
     pl.plot([0, 1], [0, 1], 'k--')
     pl.xlim([0.0, 1.0])
     pl.ylim([0.0, 1.0])
     pl.xlabel('False Positive Rate')
     pl.ylabel('True Positive Rate')
-    pl.title('Receiver operating characteristic example')
-    pl.legend(loc="lower right")
+    pl.title('ROC for Gaussian')
+    pl.subplot(211)
+    pl.plot(fpr2, tpr2, label='ROC curve (area = %0.2f)' % roc_auc2)
+    pl.plot([0, 1], [0, 1], 'k--')
+    pl.xlim([0.0, 1.0])
+    pl.ylim([0.0, 1.0])
+    pl.xlabel('False Positive Rate')
+    pl.ylabel('True Positive Rate')
+    pl.title('ROC for Polya')
     pl.show()
-    
+
+
     
     
 
