@@ -1,6 +1,8 @@
 # encoding: utf-8
 import numpy as np
 from polya import bhattacharyya
+import cv2
+
 class ParticleFilter:
    # sigma 1/20
    #
@@ -29,24 +31,25 @@ class ParticleFilter:
         self.x0=x0
         self.P0 = P0     # Estimated covariance
         self.states = np.random.multivariate_normal(self.x0,self.P0,self.num) # Estimated state
+        
         self.weights=np.ones(num)/np.float(num)
         self.threshold=.5
 
 
-    def predict(self):
+    def predict(self,max_width,max_height):
         for i in range(self.num):
-            self.states[i]=np.dot(self.A,self.states[i])+np.random.multivariate_normal(np.zeros(self.dim),self.Q)
+            val = np.dot(self.A,self.states[i]) + np.random.multivariate_normal(np.zeros(self.dim),self.Q)
+            self.states[i]= val
 
     def _calculate_weights(self,img):
         for i in range(self.num):
-            try:
-                observed_hists=img.getColorHistogram(self.states[i])
-                D=bhattacharyya(observed_hists,self.hist_ref) # Cambia por Polya
-                self.weights[i]=self.weights[i]*np.exp(-D/self.sigma2)
-            except:
-                pass
+            observed_hists=img.getColorHistogram(self.states[i]).ravel()
+            D=bhattacharyya(observed_hists,self.hist_ref) # Cambia por Polya
+            print D
+            # D=cv2.compareHist(observed_hists,self.hist_ref,cv2.cv.CV_COMP_BHATTACHARYYA)
+            self.weights[i]=self.weights[i]*np.exp(-D/self.sigma2)
         self.weights=self.weights/np.float(self.weights.sum()) #Normalizacion
-
+        # print self.weights
 
 
 

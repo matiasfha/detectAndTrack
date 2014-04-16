@@ -13,8 +13,8 @@ class Image:
     def get(self):
         ret,self.image = self.device.read()
 
-    def size():
-        return self.size
+    # def size():
+    #     return self.size
 
     def getColorHistogram(self,roi=None):
         hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
@@ -32,7 +32,7 @@ class Image:
             # return(np.zeros(self.nbins+1,self.nbins+1,3))
             return np.zeros((64,)).reshape((64,))
         else:
-            hsv_roi = hsv[y:y+w, x:x+h]
+            hsv_roi = hsv[y:y+h, x:x+w]
             # hist,edges=np.histogramdd(hsv_roi.reshape(-1,3),bins=self.edges)
             # return hist
             return(cv2.calcHist( [hsv_roi], [0,1], None, [self.nbins,self.nbins], [0, 180, 0, 256] ))

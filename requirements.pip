@@ -1,2 +1,4 @@
-opencv
 numpy
+scipy
+matplotlib
+scikit-learn
