@@ -12,6 +12,7 @@ class Image:
 
     def get(self):
         ret,self.image = self.device.read()
+        return self.image
 
     # def size():
     #     return self.size
@@ -33,6 +34,11 @@ class Image:
             return np.zeros((64,)).reshape((64,))
         else:
             hsv_roi = hsv[y:y+h, x:x+w]
+            channels = cv2.split(hsv_roi)
+            cv2.equalizeHist(channels[0],channels[0])
+            cv2.equalizeHist(channels[1],channels[1])
+            cv2.equalizeHist(channels[2],channels[2])
+            cv2.merge(channels,hsv_roi)
             # hist,edges=np.histogramdd(hsv_roi.reshape(-1,3),bins=self.edges)
             # return hist
             return(cv2.calcHist( [hsv_roi], [0,1], None, [self.nbins,self.nbins], [0, 180, 0, 256] ))
