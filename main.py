@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import random
 from sklearn.metrics import roc_curve, auc
-import pylab as pl
+#import pylab as pl
 
 
 def go_particle():
@@ -24,7 +24,7 @@ def go_particle():
         img.get()
 
         #Face de recoleccion de información/ Aprendizaje
-        if len(histograms) < 100:
+        if len(histograms) < 10:
             print len(histograms)
             #Detect faces
             found = detect.faces(img.image)
@@ -40,25 +40,28 @@ def go_particle():
             if initialState is None:
                 x,y,w,h = found[0]
                 hist = img.getColorHistogram(found[0]).ravel()
-                dx = [random.uniform(0,img.size[0]) for i in range(8)]
-                dy = [random.uniform(0,img.size[1]) for i in range(8)]
-                dw = [random.uniform(0,w) for i in range(8)]
-                dh = [random.uniform(0,h) for i in range(8)]
-                initialState = [list(s) for s in zip([x],[y],[w],[h],dx,dy,dw,dh)][0]
+                dx = random.uniform(0,5)
+                dy = random.uniform(0,5)
+                dw = random.uniform(0,.5)
+                dh = random.uniform(0,.5)
+                initialState = np.array([x,y,w,h,dx,dy,dw,dh])
                 ceroState = np.random.uniform(0,img.size[1],8)
                 cov = np.cov(np.asarray([initialState,ceroState]).T)
-                pf  = ParticleFilter(initialState,cov,hist_ref,1./-20,10)
+                pf  = ParticleFilter(initialState,cov,hist_ref,10.,100)
+                u=np.zeros((100,4))
                 for rect in pf.states:
                     rect = rect[:4]
                     img.draw_roi([rect])
                 # pf.update(img)
 
             else: #ya se ha inicializado el filtro ahora se busca actualizar y predecir
-                pf.predict(img.size[0],img.size[1])
+                old=pf.states
+                pf.predict(img.size[0],img.size[1],u)
+                pf.update(img)
                 for rect in pf.states:
                     rect = rect[:4]
                     img.draw_roi([rect])
-                pf.update(img)
+                u=(old-pf.states)[:,-4:]
         img.show()
 
         if 0xFF & cv2.waitKey(5) == 27:
@@ -162,7 +165,7 @@ def compare_distributions():
     v = np.concatenate(( np.ones(len(polya_data_f)), np.zeros(len(polya_data_n))))
     fpr2, tpr2, thresholds = roc_curve(v, d)
     roc_auc2 = auc(fpr, tpr)
-    print("Area under the ROC curve : %f" % roc_auc2)
+'''    print("Area under the ROC curve : %f" % roc_auc2)
     
     pl.subplot(212)
     pl.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
@@ -181,13 +184,13 @@ def compare_distributions():
     pl.ylabel('True Positive Rate')
     pl.title('ROC for Polya')
     pl.show()
-
+'''
 
     
     
 
 if __name__=='__main__':
-    # go_particle()
-    compare_distributions()
+    go_particle()
+    #compare_distributions()
 
 

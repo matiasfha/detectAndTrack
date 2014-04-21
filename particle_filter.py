@@ -30,24 +30,27 @@ class ParticleFilter:
         self.sigma2 = sigma2      # Process noise covariance
         self.x0=x0
         self.P0 = P0     # Estimated covariance
-        self.states = np.random.multivariate_normal(self.x0,self.P0,self.num) # Estimated state
+        self.states = np.zeros((self.num,self.dim))
+        for i in range(self.num): 
+            self.states[i]=self.x0+np.concatenate([np.random.normal(0,10,2),np.random.normal(0,1,2),np.random.normal(0,1,4)])
         
         self.weights=np.ones(num)/np.float(num)
-        self.threshold=.5
+        self.threshold=.7
 
 
-    def predict(self,max_width,max_height):
+    def predict(self,max_width,max_height,control):
         for i in range(self.num):
-            val = np.dot(self.A,self.states[i]) + np.random.multivariate_normal(np.zeros(self.dim),self.Q)
+            self.states[i]=np.concatenate([self.states[i][:4],control[i,:]])
+            noise=np.concatenate([np.random.normal(0,5,2),np.random.normal(0,.1,2),np.random.normal(0,.1,4)])
+            val = np.dot(self.A,self.states[i])+noise
             self.states[i]= val
-
+            
     def _calculate_weights(self,img):
         for i in range(self.num):
             observed_hists=img.getColorHistogram(self.states[i]).ravel()
-            D=bhattacharyya(observed_hists,self.hist_ref) # Cambia por Polya
-            print D
-            # D=cv2.compareHist(observed_hists,self.hist_ref,cv2.cv.CV_COMP_BHATTACHARYYA)
-            self.weights[i]=self.weights[i]*np.exp(-D/self.sigma2)
+            #D=bhattacharyya(observed_hists,self.hist_ref) # Cambia por Polya
+            D=cv2.compareHist(observed_hists,self.hist_ref,cv2.cv.CV_COMP_BHATTACHARYYA)
+            self.weights[i]=(1/np.sqrt(2*self.sigma2))*np.exp(-D**2/(2*self.sigma2))
         self.weights=self.weights/np.float(self.weights.sum()) #Normalizacion
         # print self.weights
 
@@ -55,11 +58,14 @@ class ParticleFilter:
 
     def _resample(self):
         indices=np.random.choice(np.arange(0,self.num),size=self.num,replace=True,p=self.weights)
-        self.weights=np.ones(num)/np.float(num)
+        self.weights=np.ones(self.num)/np.float(self.num)
         self.states=self.states[indices]
 
 
     def update(self,img):
         self._calculate_weights(img)
-        if (1/np.float((self.weights**2).sum()) < self.threshold):
+        ess=1/np.float((self.weights**2).sum())
+        print("ESS : {0}" .format(ess) )
+        if (ess < self.threshold*self.num):
+            print("Resample")
             self._resample()
