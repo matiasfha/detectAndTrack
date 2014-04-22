@@ -165,7 +165,6 @@ def compare_distributions():
     v = np.concatenate(( np.ones(len(polya_data_f)), np.zeros(len(polya_data_n))))
     fpr2, tpr2, thresholds = roc_curve(v, d)
     roc_auc2 = auc(fpr2, tpr2)
-
     print("Area under the ROC curve : %f" % roc_auc2)
     
     pl.subplot(212)
