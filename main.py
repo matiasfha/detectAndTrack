@@ -164,8 +164,8 @@ def compare_distributions():
     d            =  np.concatenate((polya_data_f,polya_data_n))
     v = np.concatenate(( np.ones(len(polya_data_f)), np.zeros(len(polya_data_n))))
     fpr2, tpr2, thresholds = roc_curve(v, d)
-    roc_auc2 = auc(fpr, tpr)
-'''    print("Area under the ROC curve : %f" % roc_auc2)
+    roc_auc2 = auc(fpr2, tpr2)
+    print("Area under the ROC curve : %f" % roc_auc2)
     
     pl.subplot(212)
     pl.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
@@ -184,7 +184,7 @@ def compare_distributions():
     pl.ylabel('True Positive Rate')
     pl.title('ROC for Polya')
     pl.show()
-'''
+
 
     
     
