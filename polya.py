@@ -238,8 +238,8 @@ def fit_fixedpoint(counts,maxiter=1000,tol=1e-6):
     return alpha, iter
 
 def bhattacharyya(h1,h2):
-    return sqrt(absolute(1-sqrt(multiply(h1,h2)).sum()) )
-    # return 1.0 - h2.sum()*exp(h2 - h1).sum() / exp(h2).sum()
+    #return sqrt(absolute(1-sqrt(multiply(h1,h2)).sum()) )
+    return 1.0 - h2.sum()*exp(h2 - h1).sum() / exp(h2).sum()
     # return sqrt(1.0 - 1.0/sqrt(multiply(h1,h2)*exp(h2).sum())* sqrt(multiply(h1,h2)).sum() )
 
 def test(dim=5,nsamples=100):
