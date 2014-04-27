@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 import random
 from sklearn.metrics import roc_curve, auc
+import sys
 #import pylab as pl
 
 
@@ -24,10 +25,11 @@ def go_particle():
         img.get()
 
         #Face de recoleccion de información/ Aprendizaje
-        if len(histograms) < 10:
+        if len(histograms) < 100:
             print len(histograms)
             #Detect faces
             found = detect.faces(img.image)
+            # found = detect.people(img.image)
             if len(found) > 0:
                 hist_ref = img.getColorHistogram(found[0]).ravel()
                 histograms.append(hist_ref)
@@ -69,21 +71,7 @@ def go_particle():
 
 
 
-    #             pf = ParticleFilter(initialState,cov,hist,0.9 ** 2,100) #num depende de la maquina
-    #             # pf.predict()
-    #             # pf.update(img)
-    #             #pf.states -> dibujar
-    #         else:
-    #             pf.predict()
-
-    #             for rect in pf.states.tolist():
-    #                 img.draw_roi( [rect[:4]] )
-
-    #             pf.update(img)
-    #         img.show()
-    #         if 0xFF & cv2.waitKey(5) == 27:
-    #             break
-    #
+   
 def compare_distributions():
     img     = Image()
     detect  = Detection()
@@ -189,7 +177,21 @@ def compare_distributions():
     
 
 if __name__=='__main__':
-    go_particle()
+    # go_particle()
     #compare_distributions()
+    if len(sys.argv) == 2:
+        img     = Image(sys.argv[1])
+    else:
+        img = Image()
+    detect  = Detection()
+    while(True):
+        img.get()
+        found = detect.people(img.image)
+        if len(found) > 0:
+            img.draw_roi([found[0]])
+        img.show()
+        if 0xFF & cv2.waitKey(5) == 27:
+            break
+
 
 

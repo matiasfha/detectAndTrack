@@ -2,17 +2,44 @@
 import cv2
 import cv2.cv as cv
 import numpy as np
+import os
 class Image:
-    def __init__(self):
-        self.device = cv2.VideoCapture(0)
-        ret,self.image = self.device.read()
-        self.size = (self.device.get(cv.CV_CAP_PROP_FRAME_WIDTH),self.device.get(cv.CV_CAP_PROP_FRAME_HEIGHT))
+    def __init__(self,video=None):
+
+        if video is not None:
+            if os.path.isdir(video): #Es un conjunto de imagenes en un directorio
+                self.device = None
+                self.images = []
+                for dir_entry in os.listdir(video):
+                    dir_entry_path = os.path.join(video,dir_entry)
+                    if os.path.isfile(dir_entry_path):
+                        self.images.append(dir_entry_path)
+                self.index = 0
+            else:
+                self.device = cv2.VideoCapture(video)
+        else:
+            self.device = cv2.VideoCapture(0)
+        self.image = self._readImage()
+        if self.device is not None:
+            self.size = (self.device.get(cv.CV_CAP_PROP_FRAME_WIDTH),self.device.get(cv.CV_CAP_PROP_FRAME_HEIGHT))
+        else:
+            height, width, depth = self.image.shape
+            self.size = (width,height)
         self.nbins=8
         self.edges=[np.linspace(0,180,self.nbins+1),np.linspace(0,256,self.nbins+1),np.linspace(0,256,2+1)]
 
     def get(self):
-        ret,self.image = self.device.read()
+        self.image = self._readImage()
         return self.image
+
+    def _readImage(self):
+        if self.device is not None:
+            ret,image = self.device.read()
+        else:
+            image = cv2.imread(self.images[self.index])
+            self.index = self.index + 1
+            #Leer la siguiente imagen desde el directorio
+        return image
 
     # def size():
     #     return self.size
@@ -69,6 +96,7 @@ class Image:
 
     def __del__(self):
         cv2.destroyAllWindows()
-        self.device.release
+        if self.device is not None:
+            self.device.release
 
 
