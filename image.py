@@ -68,6 +68,7 @@ class Image:
             cv2.merge(channels,hsv_roi)
             # hist,edges=np.histogramdd(hsv_roi.reshape(-1,3),bins=self.edges)
             # return hist
+            #cv2.calcHist([hsv_roi],[2],None,[10],[0,180,0,256])
             return(cv2.calcHist( [hsv_roi], [0,1], None, [self.nbins,self.nbins], [0, 180, 0, 256] ))
 
 

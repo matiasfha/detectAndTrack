@@ -177,21 +177,43 @@ def compare_distributions():
     
 
 if __name__=='__main__':
-    # go_particle()
+    #go_particle()
     #compare_distributions()
     if len(sys.argv) == 2:
         img     = Image(sys.argv[1])
     else:
         img = Image()
     detect  = Detection()
+    histograms = []
     while(True):
         img.get()
         found = detect.people(img.image)
-        if len(found) > 0:
-            img.draw_roi([found[0]])
+        for x,y,w,h in found:
+            hist = img.getColorHistogram([(x,y,w,h)])
+            histograms.append(hist)
+            img.draw_roi([(x,y,w,h)])
         img.show()
         if 0xFF & cv2.waitKey(5) == 27:
             break
+    print len(histograms)
+    #Polya
+    # alpha_hat,it= fit_betabinom_minka_alternating(histograms)
+    # P=np.exp(log_like_polya(alpha_hat,np.array([histograms])))
+
+    # Multiple target color tracking using a Dirichlent distribution of histograms
+    #
+    # Meanshift | Camshift
+    # Kalman Meashift
+    # McKenna (Tracking)
+    # Perez
+    # 
+    # Dirchlet
+
+    # Propuesta: Distribución de histogramas de color mejores resultados para el tracking.
+    # Probar dicha propuesta con curvas ROC comparando idea de Perez con usar Polya (Dirichlet) (Webcam)
+    # Probar con PETS .. hablar sobre el aprendizaje del modelo de mezclas (hockey - Skin detection)
+    # "Particle filter a cada objeto" - Trabajo futuro utilizando la distribución Dirichlet y aprendizaje RJMCMC 
+
 
 
 
